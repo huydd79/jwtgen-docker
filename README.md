@@ -10,6 +10,7 @@ Any comments, please send to huy.do@cyberark.com
 - jwt is created with the content from json template
   - jwt's kid information is generated using sha1sum of container's hostname
   - jwtgen-refresh.sh is run using cron job, refreshing jwt content every 5 minutes
+  - Default validation time for jwt is 6 minutes
 
 # Testing
 - Build the container image using 01.build.sh script

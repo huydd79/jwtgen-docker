@@ -1,0 +1,5 @@
+{
+    "typ": "JWT",
+    "alg": "RS256",
+    "kid": "this_will_be_created_when_container_started"
+}

@@ -1,2 +1,0 @@
-# Generating jwt every 5 minutes
-*/5 * * * * /usr/local/bin/jwtgen-refresh.sh

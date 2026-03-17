@@ -10,11 +10,9 @@ RUN apt-get update && \
     mkdir -p /etc/jwtgen /etc/ssl/private /var/run/jwtgen /var/log/jwtgen
 
 COPY jwtgen.sh jwtgen-refresh.sh jwtgen-entrypoint.sh pem2jwks.py /usr/local/bin/
-COPY jwtgen.cron /etc/cron.d/jwtgen
 COPY jwt_header.json jwt_payload.json /etc/jwtgen/
 
 RUN chmod +x /usr/local/bin/* && \
-    chmod 0644 /etc/cron.d/jwtgen && \
     touch /var/log/jwtgen.log
 
 ENTRYPOINT [ "/usr/local/bin/jwtgen-entrypoint.sh" ]

@@ -4,14 +4,17 @@ Docker template for creating and managing jwt for authentication purpose
 Any comments, please send to huy.do@cyberark.com
 
 # Explaination
-- Key pair is created when the container start
-  - Private key is secured in container environment /etc/ssl/private which allow access for root permission only
+- Key pair is created when the container start if they are not existed
+  - Private key is stored at /etc/ssl/private/jwtgen.key and public cert is stored at /etc/jwtgen/jwtgen.crt 
+  - Private key shoud be secured in container environment /etc/ssl/private which allow access for root permission only
   - Public key is converted to jwks and is shared out over docker logs and file: /etc/jwtgen/jwt.pub
+  - KID is calculated base on public cert
 - jwt is created with the content from json template
   - jwt's kid information is generated using sha1sum of container's hostname
   - jwt expire time is set base on JWT_EXPIRE environment variable, default is 3600 secs (1 hour)
   - jwtgen-refresh.sh is run in background after sleeptime=90% JWT_EXPIRE
   - Default validation time for jwt is 6 minutes
+
 
 # Testing
 - Build the container image using 01.build.sh script

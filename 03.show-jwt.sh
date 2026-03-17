@@ -1,3 +1,4 @@
 #!/bin/bash
-
-docker exec -it c1 cat /var/run/jwtgen/jwt
+echo "Current JWT Token:"
+docker exec hdo-jwtgen cat /var/run/jwtgen/jwt
+echo -e "\n"

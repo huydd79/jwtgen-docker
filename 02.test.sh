@@ -1,3 +1,14 @@
-#!/bin/bash
+CONTAINER_NAME="hdo-jwtgen"
+IMAGE_NAME="hdo-jwtgen"
+EXPIRE_TIME=300 # 5 minutes
 
-docker run -it --rm --name=c1 jwtgen
+echo "Stopping and removing old container if exists..."
+docker rm -f $CONTAINER_NAME >/dev/null 2>&1
+
+echo "Starting new container with JWT_EXPIRE=$EXPIRE_TIME..."
+docker run -d \
+  --name $CONTAINER_NAME \
+  -e JWT_EXPIRE=$EXPIRE_TIME \
+  $IMAGE_NAME
+
+docker logs -f $CONTAINER_NAME

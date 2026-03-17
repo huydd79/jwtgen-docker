@@ -9,7 +9,8 @@ Any comments, please send to huy.do@cyberark.com
   - Public key is converted to jwks and is shared out over docker logs and file: /etc/jwtgen/jwt.pub
 - jwt is created with the content from json template
   - jwt's kid information is generated using sha1sum of container's hostname
-  - jwtgen-refresh.sh is run using cron job, refreshing jwt content every 5 minutes
+  - jwt expire time is set base on JWT_EXPIRE environment variable, default is 3600 secs (1 hour)
+  - jwtgen-refresh.sh is run in background after sleeptime=90% JWT_EXPIRE
   - Default validation time for jwt is 6 minutes
 
 # Testing

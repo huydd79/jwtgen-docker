@@ -1,77 +1,35 @@
 #!/usr/bin/env bash
 
-# 20240404
-# Modified by Huy.Do@cyberark.com, adding signature signing using private key
-#
-# JWT Encoder Bash Script
-#
-# A lightly modified version of the original by Will Haley:
-# https://willhaley.com/blog/generate-jwt-with-bash/
-#
-# With stdin handling from Filipe Fortes:
-# https://fortes.com/2019/bash-script-args-and-stdin/
-#
+# JWT Encoder - Optimized for Bash
+HEADER_FILE=$1
+PAYLOAD_FILE=$2
+KEY_FILE=$3
 
-# Copy command-line arguments over to new array
-ARGS=( $@ )
+# If env JWT_EXPIRE is empty, using default 3600s (1 hour) expiration time for the token
+EXP_DELTA=${JWT_EXPIRE:-3600}
 
-# Don't split on spaces
-IFS='
-'
-
-# Read in from piped input, if present, and append to newly-created array
-if [ ! -t 0 ]; then
-  readarray STDIN_ARGS < /dev/stdin
-  ARGS=( $@ ${STDIN_ARGS[@]} )
+if [[ -z "$HEADER_FILE" || -z "$PAYLOAD_FILE" || -z "$KEY_FILE" ]]; then
+    echo "Usage: $0 <header.json> <payload.json> <private.key>" >&2
+    exit 1
 fi
 
-# Takes three parameters: the jwt header, jwt payload file and private key file
-header_file=${ARGS[0]}
-
-# Take the payload from the arguments, or fall back to stdin
-payload_file=${ARGS[1]}
-
-# Take the key file from the arguments, or fall back to stdin
-key_file=${ARGS[2]}
-
-# Show an error if neither are defined
-if [ -z "$header_file" ] || [ -z "$payload_file" ] || [ -z "$key_file" ]; then
-  >&2 echo "Usage: $0 jwt_header_file jwt_payload_file private_key_file"
-  exit 1
-fi
-
-# Static header fields.
-header=$(cat $header_file)
-
-# Use jq to set the dynamic `iat` and `exp`
-# fields on the payload using the current time.
-# `iat` is set to now, and `exp` is now + 1 hour.
-payload=$(
-    cat $payload_file | jq --arg time_str "$(date +%s)" \
-    '
-    ($time_str | tonumber) as $time_num
-    | .iat=$time_num
-    | .exp=($time_num + 360)
-    '
-)
-
-base64_encode() {
-    # Use `tr` to URL encode the output from base64.
+# Helper: Base64URL encoding
+b64url() {
     base64 | tr -d '=' | tr '/+' '_-' | tr -d '\n'
 }
 
-json() {
-    jq -c . | tr -d '\n'
-}
+# Load and update payload with dynamic timestamps
+# iat: now, exp: now + EXP_DELTA
+HEADER=$(jq -c . "$HEADER_FILE" | tr -d '\n')
+PAYLOAD=$(jq -c --arg iat "$(date +%s)" --arg delta "$EXP_DELTA" \
+    '.iat=($iat|tonumber) | .exp=($iat|tonumber + ($delta|tonumber))' "$PAYLOAD_FILE")
 
-rsasha256_sign() {
-    openssl dgst -sha256 -binary -sign $key_file
-}
+# Encode segments
+HEADER_B64=$(echo -n "$HEADER" | b64url)
+PAYLOAD_B64=$(echo -n "$PAYLOAD" | b64url)
 
-header_base64=$(echo "${header}" | json | base64_encode)
-payload_base64=$(echo "${payload}" | json | base64_encode)
+# Sign
+SIGNATURE=$(echo -n "${HEADER_B64}.${PAYLOAD_B64}" | openssl dgst -sha256 -binary -sign "$KEY_FILE" | b64url)
 
-header_payload=$(echo "${header_base64}.${payload_base64}")
-signature=$(echo -n "${header_payload}" | rsasha256_sign | base64_encode)
-
-echo "${header_payload}.${signature}"
+# Output Token
+echo "${HEADER_B64}.${PAYLOAD_B64}.${SIGNATURE}"

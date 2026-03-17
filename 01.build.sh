@@ -1,3 +1,2 @@
 #!/bin/bash
-
-docker build -t jwtgen .
+docker build -t hdo-jwtgen .

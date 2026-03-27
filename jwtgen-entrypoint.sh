@@ -2,7 +2,6 @@
 set -e # Exit on error
 
 # Configuration
-CERT_CONF="/tmp/cert.conf"
 PRV_KEY="/etc/jwtgen/keypair/jwtget-prv.key"
 PUB_KEY="/etc/jwtgen/keypair/jwtget-pub.key"
 KID_FILE="/etc/jwtgen/kid"
